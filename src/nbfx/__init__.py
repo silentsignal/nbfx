@@ -30,9 +30,11 @@ def nbfx_import_values(nbfx: Nbfx, values) -> Nbfx:
 
 def nbfx_serialize(nbfx: Nbfx) -> bytes:
     nbfx._check()
+    # Still an ugly hack to determine expected output size
     final_size = 0
     try:
-        _test_io = KaitaiStream(BytesIO(bytearray(1024)))
+        # This may need increasing for large messages!
+        _test_io = KaitaiStream(BytesIO(bytearray(102400)))
         nbfx._write(_test_io)
     except:
         final_size = _test_io.pos()
@@ -48,7 +50,19 @@ def nbfx_set_string(nbfx_str: Nbfx.NbfxString, value: str):
 
 
 def nbfx_set_multibyte_int31(nbfx_int: Nbfx.MultiByteInt31, value: int):
-    if value <= 0x7F:
+    if value <= 0x7f:
         nbfx_int.multibytes[0].value = value
         nbfx_int.multibytes[0].has_next = 0
         return
+    if value > 0x7f and value <= 0x3fff:
+        nbfx_int.multibytes=[]
+        mb0=Nbfx.Multibyte()
+        mb0.value = value & 0x7f
+        mb0.has_next = 1
+        nbfx_int.multibytes.append(mb0)
+        mb1 = Nbfx.Multibyte()
+        mb1.value = (value & 0xff80) >> 7
+        mb1.has_next = 0
+        nbfx_int.multibytes.append(mb1)
+        return
+
