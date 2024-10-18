@@ -41,12 +41,14 @@ def nbfx_serialize(nbfx: Nbfx) -> bytes:
     nbfx._write(_out_io)
     return _out_io.to_byte_array()
 
+
 def nbfx_set_string(nbfx_str: Nbfx.NbfxString, value: str):
     nbfx_str.str = value
     nbfx_set_multibyte_int31(nbfx_str.str_len, len(value))
 
+
 def nbfx_set_multibyte_int31(nbfx_int: Nbfx.MultiByteInt31, value: int):
-    if value <= 0x7f:
+    if value <= 0x7F:
         nbfx_int.multibytes[0].value = value
         nbfx_int.multibytes[0].has_next = 0
         return
