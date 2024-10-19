@@ -15,6 +15,8 @@ class Nbfx(ReadWriteKaitaiStruct):
         self._root = _root if _root else self
 
     def _read(self):
+        self.dictionary_table = Nbfx.DictionaryTable(self._io, self, self._root)
+        self.dictionary_table._read()
         self.records = []
         i = 0
         while not self._io.is_eof():
@@ -27,6 +29,7 @@ class Nbfx(ReadWriteKaitaiStruct):
 
     def _fetch_instances(self):
         pass
+        self.dictionary_table._fetch_instances()
         for i in range(len(self.records)):
             pass
             self.records[i]._fetch_instances()
@@ -35,6 +38,7 @@ class Nbfx(ReadWriteKaitaiStruct):
 
     def _write__seq(self, io=None):
         super(Nbfx, self)._write__seq(io)
+        self.dictionary_table._write__seq(self._io)
         for i in range(len(self.records)):
             pass
             if self._io.is_eof():
@@ -47,6 +51,10 @@ class Nbfx(ReadWriteKaitaiStruct):
 
     def _check(self):
         pass
+        if self.dictionary_table._root != self._root:
+            raise kaitaistruct.ConsistencyError(u"dictionary_table", self.dictionary_table._root, self._root)
+        if self.dictionary_table._parent != self:
+            raise kaitaistruct.ConsistencyError(u"dictionary_table", self.dictionary_table._parent, self)
         for i in range(len(self.records)):
             pass
             if self.records[i]._root != self._root:
@@ -178,7 +186,7 @@ class Nbfx(ReadWriteKaitaiStruct):
             if hasattr(self, '_m_value'):
                 return self._m_value
 
-            self._m_value = (((self.multibytes[self.last].value + ((self.multibytes[(self.last - 1)].value << 7) if (self.last >= 1) else 0)) + ((self.multibytes[(self.last - 2)].value << 14) if (self.last >= 2) else 0)) + ((self.multibytes[(self.last - 3)].value << 21) if (self.last >= 3) else 0))
+            self._m_value = (((self.multibytes[0].value | ((self.multibytes[1].value << 7) if (self.last >= 1) else 0)) | ((self.multibytes[2].value << 14) if (self.last >= 2) else 0)) | ((self.multibytes[3].value << 21) if (self.last >= 3) else 0))
             return getattr(self, '_m_value', None)
 
         def _invalidate_value(self):
@@ -219,6 +227,54 @@ class Nbfx(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(u"name", self.name._root, self._root)
             if self.name._parent != self:
                 raise kaitaistruct.ConsistencyError(u"name", self.name._parent, self)
+
+
+    class DictionaryEntries(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.entry = []
+            i = 0
+            while not self._io.is_eof():
+                _t_entry = Nbfx.NbfxString(self._io, self, self._root)
+                _t_entry._read()
+                self.entry.append(_t_entry)
+                i += 1
+
+
+
+        def _fetch_instances(self):
+            pass
+            for i in range(len(self.entry)):
+                pass
+                self.entry[i]._fetch_instances()
+
+
+
+        def _write__seq(self, io=None):
+            super(Nbfx.DictionaryEntries, self)._write__seq(io)
+            for i in range(len(self.entry)):
+                pass
+                if self._io.is_eof():
+                    raise kaitaistruct.ConsistencyError(u"entry", self._io.size() - self._io.pos(), 0)
+                self.entry[i]._write__seq(self._io)
+
+            if not self._io.is_eof():
+                raise kaitaistruct.ConsistencyError(u"entry", self._io.size() - self._io.pos(), 0)
+
+
+        def _check(self):
+            pass
+            for i in range(len(self.entry)):
+                pass
+                if self.entry[i]._root != self._root:
+                    raise kaitaistruct.ConsistencyError(u"entry", self.entry[i]._root, self._root)
+                if self.entry[i]._parent != self:
+                    raise kaitaistruct.ConsistencyError(u"entry", self.entry[i]._parent, self)
+
 
 
     class Multibyte(ReadWriteKaitaiStruct):
@@ -401,6 +457,55 @@ class Nbfx(ReadWriteKaitaiStruct):
 
         def _check(self):
             pass
+
+
+    class DictionaryTable(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.size = Nbfx.MultiByteInt31(self._io, self, self._root)
+            self.size._read()
+            self._raw_entries = self._io.read_bytes(self.size.value)
+            _io__raw_entries = KaitaiStream(BytesIO(self._raw_entries))
+            self.entries = Nbfx.DictionaryEntries(_io__raw_entries, self, self._root)
+            self.entries._read()
+
+
+        def _fetch_instances(self):
+            pass
+            self.size._fetch_instances()
+            self.entries._fetch_instances()
+
+
+        def _write__seq(self, io=None):
+            super(Nbfx.DictionaryTable, self)._write__seq(io)
+            self.size._write__seq(self._io)
+            _io__raw_entries = KaitaiStream(BytesIO(bytearray(self.size.value)))
+            self._io.add_child_stream(_io__raw_entries)
+            _pos2 = self._io.pos()
+            self._io.seek(self._io.pos() + (self.size.value))
+            def handler(parent, _io__raw_entries=_io__raw_entries):
+                self._raw_entries = _io__raw_entries.to_byte_array()
+                if (len(self._raw_entries) != self.size.value):
+                    raise kaitaistruct.ConsistencyError(u"raw(entries)", len(self._raw_entries), self.size.value)
+                parent.write_bytes(self._raw_entries)
+            _io__raw_entries.write_back_handler = KaitaiStream.WriteBackHandler(_pos2, handler)
+            self.entries._write__seq(_io__raw_entries)
+
+
+        def _check(self):
+            pass
+            if self.size._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"size", self.size._root, self._root)
+            if self.size._parent != self:
+                raise kaitaistruct.ConsistencyError(u"size", self.size._parent, self)
+            if self.entries._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"entries", self.entries._root, self._root)
+            if self.entries._parent != self:
+                raise kaitaistruct.ConsistencyError(u"entries", self.entries._parent, self)
 
 
     class PrefixAttribute(ReadWriteKaitaiStruct):
