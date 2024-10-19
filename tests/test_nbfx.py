@@ -23,7 +23,7 @@ def nbfx_from_file(file):
 
 def reserialize_size(nbfx, size):
     vals = nbfx_export_values(nbfx)
-    new_vals = {"NbfxString":[]}
+    new_vals = {"NbfxString": [], "Number": []}
     for val in vals["NbfxString"]:
         new_vals["NbfxString"].append((val[0], val[1], "A" * size))
     nbfx_import_values(nbfx, new_vals)
@@ -31,14 +31,12 @@ def reserialize_size(nbfx, size):
 
 
 @pytest.mark.parametrize("file", sample_files)
-@pytest.mark.parametrize(
-    "size,expected", [(5521, b"\x91+AAAA"), (145, b"\x91\x01AAAA")]
-)
+@pytest.mark.parametrize("size,expected", [(5521, b"\x91+A"), (145, b"\x91\x01A")])
 def test_reserialize_str_len_2bytes(nbfx_from_file, size, expected):
     assert expected in reserialize_size(nbfx_from_file, size)
 
 
 @pytest.mark.parametrize("file", sample_files)
-@pytest.mark.parametrize("size,expected", [(17, b"\x11AAAA")])
+@pytest.mark.parametrize("size,expected", [(17, b"\x11A")])
 def test_reserialize_str_len_1byte(nbfx_from_file, size, expected):
     assert expected in reserialize_size(nbfx_from_file, size)
