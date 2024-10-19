@@ -12,6 +12,7 @@ sample_files = [
     join("samples", f) for f in listdir("samples") if isfile(join("samples", f))
 ]
 
+
 @pytest.fixture()
 def nbfx_from_file(file):
     with KaitaiStream(open(file, "rb")) as _io:
@@ -19,12 +20,25 @@ def nbfx_from_file(file):
         nbfx._read()
         yield nbfx
 
-@pytest.mark.parametrize("file", sample_files)
-def test_reserialize_str_len_2bytes(nbfx_from_file):
-    vals = nbfx_export_values(nbfx_from_file)
+
+def reserialize_size(nbfx, size):
+    vals = nbfx_export_values(nbfx)
     new_vals = []
     for val in vals:
-        new_vals.append((val[0], val[1], "A" * 5521))
-    nbfx_import_values(nbfx_from_file, new_vals)
-    result = nbfx_serialize(nbfx_from_file)
-    assert b"\x91+AAAA" in result
+        new_vals.append((val[0], val[1], "A" * size))
+    nbfx_import_values(nbfx, new_vals)
+    return nbfx_serialize(nbfx)
+
+
+@pytest.mark.parametrize("file", sample_files)
+@pytest.mark.parametrize(
+    "size,expected", [(5521, b"\x91+AAAA"), (145, b"\x91\x01AAAA")]
+)
+def test_reserialize_str_len_2bytes(nbfx_from_file, size, expected):
+    assert expected in reserialize_size(nbfx_from_file, size)
+
+
+@pytest.mark.parametrize("file", sample_files)
+@pytest.mark.parametrize("size,expected", [(17, b"\x11AAAA")])
+def test_reserialize_str_len_1byte(nbfx_from_file, size, expected):
+    assert expected in reserialize_size(nbfx_from_file, size)
