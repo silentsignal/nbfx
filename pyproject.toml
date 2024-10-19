@@ -9,5 +9,5 @@ authors = [ {name="buherator", email="buherator@silentsignal.hu"}, ]
 description = "Kaitai Struct parser of MS-NFX"
 readme = "README.md"
 requires-python = ">=3.0"
-dependencies = ["kaitaistruct >= 0.11"]
+#dependencies = ["kaitaistruct >= 0.11"]
 
