@@ -5,23 +5,23 @@ from io import BytesIO
 __all__ = ["nbfx_export_values", "nbfx_import_values", "nbfx_serialize", "Nbfx"]
 
 
-def nbfx_export_values(nbfx: Nbfx) -> list:
-    ret = []
+def nbfx_export_values(nbfx: Nbfx) -> dict:
+    ret = {"NbfxString":[]}
     for i, record in enumerate(nbfx.records):
         try:
             rec = record.rec_body
             if isinstance(rec, Nbfx.PrefixAttribute):
-                ret.append((i, "name", rec.name.str))
-                ret.append((i, "value", rec.value.str))
+                ret["NbfxString"].append((i, "name", rec.name.str))
+                ret["NbfxString"].append((i, "value", rec.value.str))
             elif isinstance(rec, Nbfx.DictionaryAttribute):
-                ret.append((i, "prefix", rec.prefix.str))
+                ret["NbfxString"].append((i, "prefix", rec.prefix.str))
         except AttributeError:
             pass
     return ret
 
 
 def nbfx_import_values(nbfx: Nbfx, values) -> Nbfx:
-    for val in values:
+    for val in values["NbfxString"]:
         rec = nbfx.records[val[0]].rec_body
         nbfx_str = getattr(rec, val[1])
         nbfx_set_string(nbfx_str, val[2])

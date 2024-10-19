@@ -23,9 +23,9 @@ def nbfx_from_file(file):
 
 def reserialize_size(nbfx, size):
     vals = nbfx_export_values(nbfx)
-    new_vals = []
-    for val in vals:
-        new_vals.append((val[0], val[1], "A" * size))
+    new_vals = {"NbfxString":[]}
+    for val in vals["NbfxString"]:
+        new_vals["NbfxString"].append((val[0], val[1], "A" * size))
     nbfx_import_values(nbfx, new_vals)
     return nbfx_serialize(nbfx)
 
