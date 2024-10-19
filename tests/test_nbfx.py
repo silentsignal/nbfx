@@ -28,22 +28,20 @@ def reserialize_size(nbfx, size):
         new_vals["Dictionary"].append((val[0], "A" * size))
     nbfx1=nbfx_import_values(nbfx, new_vals)
     return nbfx_serialize(nbfx1)
-"""
+
 @pytest.mark.parametrize("file", sample_files)
 @pytest.mark.parametrize("size,expected", [(5521, b"\x91+A"), (145, b"\x91\x01A")])
 def test_reserialize_str_len_2bytes(nbfx_from_file, size, expected):
     assert expected in reserialize_size(nbfx_from_file, size)
-"""
 
 @pytest.mark.parametrize("file", sample_files)
 @pytest.mark.parametrize("size,expected", [(17, b"\x11A")])
 def test_reserialize_str_len_1byte(nbfx_from_file, size, expected):
     assert expected in reserialize_size(nbfx_from_file, size)
-"""
-@pytest.mark.parametrize("value,expected", [(145,[0x99,0x01])])
+
+@pytest.mark.parametrize("value,expected", [(145,b"\x91\x01")])
 def test_multibyte(value,expected):
     mb=nbfx_get_multibyte_int31(value)
-    print(repr(nbfx_serialize(mb)))
-    for i, val in enumerate(expected):
-        assert(val == mb.multibytes[i].value)
-"""
+    print(mb.value)
+    ser=nbfx_serialize(mb)
+    assert(expected == ser)
