@@ -130,10 +130,6 @@ def nbfx_import_values(nbfx: Nbfx, values) -> Nbfx:
     dict_len = len(kaitai_serialize(nbfx.dictionary_table.entries))
     nbfx.dictionary_table.size = nbfx_get_multibyte_int31(dict_len)
 
-    mb = OldMultiByteInt31()
-    mb.value = dict_len
-    correct_size = dict_len + len(mb.to_bytes())
-
     for val in values["Chars"]:
         charstr=None
         l = len(val[1])
@@ -181,7 +177,7 @@ def nbfx_set_string(nbfx_str: Nbfx.NbfxString, value: str):
 def nbfx_get_multibyte_int31(value: int) -> Nbfx.MultiByteInt31:
     mb = OldMultiByteInt31()
     mb.value = value
-    print(repr(mb.to_bytes()))
+    #print(repr(mb.to_bytes()))
     mb_io = KaitaiStream(BytesIO(mb.to_bytes()))
     nbfx_int = Nbfx.MultiByteInt31(mb_io)
     nbfx_int._read()
