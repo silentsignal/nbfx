@@ -377,6 +377,33 @@ class Nbfx(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(u"name_id", self.name_id._parent, self)
 
 
+    class Chars16Text(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.length = self._io.read_u2le()
+            self.string = (self._io.read_bytes(self.length)).decode("UTF-8")
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(Nbfx.Chars16Text, self)._write__seq(io)
+            self._io.write_u2le(self.length)
+            self._io.write_bytes((self.string).encode(u"UTF-8"))
+
+
+        def _check(self):
+            pass
+            if (len((self.string).encode(u"UTF-8")) != self.length):
+                raise kaitaistruct.ConsistencyError(u"string", len((self.string).encode(u"UTF-8")), self.length)
+
+
     class DictionaryXmlsAttribute(ReadWriteKaitaiStruct):
         def __init__(self, _io=None, _parent=None, _root=None):
             self._io = _io
@@ -457,6 +484,33 @@ class Nbfx(ReadWriteKaitaiStruct):
 
         def _check(self):
             pass
+
+
+    class Chars32Text(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.length = self._io.read_u4le()
+            self.string = (self._io.read_bytes(self.length)).decode("UTF-8")
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(Nbfx.Chars32Text, self)._write__seq(io)
+            self._io.write_u4le(self.length)
+            self._io.write_bytes((self.string).encode(u"UTF-8"))
+
+
+        def _check(self):
+            pass
+            if (len((self.string).encode(u"UTF-8")) != self.length):
+                raise kaitaistruct.ConsistencyError(u"string", len((self.string).encode(u"UTF-8")), self.length)
 
 
     class DictionaryTable(ReadWriteKaitaiStruct):
@@ -553,7 +607,7 @@ class Nbfx(ReadWriteKaitaiStruct):
 
         def _read(self):
             self.length = self._io.read_u1()
-            self.bytes = self._io.read_bytes(self.length)
+            self.string = (self._io.read_bytes(self.length)).decode("UTF-8")
 
 
         def _fetch_instances(self):
@@ -563,13 +617,13 @@ class Nbfx(ReadWriteKaitaiStruct):
         def _write__seq(self, io=None):
             super(Nbfx.Chars8Text, self)._write__seq(io)
             self._io.write_u1(self.length)
-            self._io.write_bytes(self.bytes)
+            self._io.write_bytes((self.string).encode(u"UTF-8"))
 
 
         def _check(self):
             pass
-            if (len(self.bytes) != self.length):
-                raise kaitaistruct.ConsistencyError(u"bytes", len(self.bytes), self.length)
+            if (len((self.string).encode(u"UTF-8")) != self.length):
+                raise kaitaistruct.ConsistencyError(u"string", len((self.string).encode(u"UTF-8")), self.length)
 
 
     class NbfxString(ReadWriteKaitaiStruct):
@@ -905,6 +959,10 @@ class Nbfx(ReadWriteKaitaiStruct):
                 pass
                 self.rec_body = Nbfx.PrefixDictionaryElement(self._io, self, self._root)
                 self.rec_body._read()
+            elif _on == 156:
+                pass
+                self.rec_body = Nbfx.Chars32Text(self._io, self, self._root)
+                self.rec_body._read()
             elif _on == 19:
                 pass
                 self.rec_body = Nbfx.PrefixDictionaryAttribute(self._io, self, self._root)
@@ -1037,6 +1095,10 @@ class Nbfx(ReadWriteKaitaiStruct):
                 pass
                 self.rec_body = Nbfx.PrefixDictionaryElement(self._io, self, self._root)
                 self.rec_body._read()
+            elif _on == 157:
+                pass
+                self.rec_body = Nbfx.Chars32Text(self._io, self, self._root)
+                self.rec_body._read()
             elif _on == 16:
                 pass
                 self.rec_body = Nbfx.PrefixDictionaryAttribute(self._io, self, self._root)
@@ -1064,6 +1126,10 @@ class Nbfx(ReadWriteKaitaiStruct):
             elif _on == 139:
                 pass
                 self.rec_body = Nbfx.Int16Text(self._io, self, self._root)
+                self.rec_body._read()
+            elif _on == 155:
+                pass
+                self.rec_body = Nbfx.Chars16Text(self._io, self, self._root)
                 self.rec_body._read()
             elif _on == 31:
                 pass
@@ -1112,6 +1178,10 @@ class Nbfx(ReadWriteKaitaiStruct):
             elif _on == 173:
                 pass
                 self.rec_body = Nbfx.UniqueidText(self._io, self, self._root)
+                self.rec_body._read()
+            elif _on == 154:
+                pass
+                self.rec_body = Nbfx.Chars16Text(self._io, self, self._root)
                 self.rec_body._read()
 
 
@@ -1244,6 +1314,9 @@ class Nbfx(ReadWriteKaitaiStruct):
             elif _on == 86:
                 pass
                 self.rec_body._fetch_instances()
+            elif _on == 156:
+                pass
+                self.rec_body._fetch_instances()
             elif _on == 19:
                 pass
                 self.rec_body._fetch_instances()
@@ -1343,6 +1416,9 @@ class Nbfx(ReadWriteKaitaiStruct):
             elif _on == 74:
                 pass
                 self.rec_body._fetch_instances()
+            elif _on == 157:
+                pass
+                self.rec_body._fetch_instances()
             elif _on == 16:
                 pass
                 self.rec_body._fetch_instances()
@@ -1362,6 +1438,9 @@ class Nbfx(ReadWriteKaitaiStruct):
                 pass
                 self.rec_body._fetch_instances()
             elif _on == 139:
+                pass
+                self.rec_body._fetch_instances()
+            elif _on == 155:
                 pass
                 self.rec_body._fetch_instances()
             elif _on == 31:
@@ -1398,6 +1477,9 @@ class Nbfx(ReadWriteKaitaiStruct):
                 pass
                 self.rec_body._fetch_instances()
             elif _on == 173:
+                pass
+                self.rec_body._fetch_instances()
+            elif _on == 154:
                 pass
                 self.rec_body._fetch_instances()
 
@@ -1532,6 +1614,9 @@ class Nbfx(ReadWriteKaitaiStruct):
             elif _on == 86:
                 pass
                 self.rec_body._write__seq(self._io)
+            elif _on == 156:
+                pass
+                self.rec_body._write__seq(self._io)
             elif _on == 19:
                 pass
                 self.rec_body._write__seq(self._io)
@@ -1631,6 +1716,9 @@ class Nbfx(ReadWriteKaitaiStruct):
             elif _on == 74:
                 pass
                 self.rec_body._write__seq(self._io)
+            elif _on == 157:
+                pass
+                self.rec_body._write__seq(self._io)
             elif _on == 16:
                 pass
                 self.rec_body._write__seq(self._io)
@@ -1650,6 +1738,9 @@ class Nbfx(ReadWriteKaitaiStruct):
                 pass
                 self.rec_body._write__seq(self._io)
             elif _on == 139:
+                pass
+                self.rec_body._write__seq(self._io)
+            elif _on == 155:
                 pass
                 self.rec_body._write__seq(self._io)
             elif _on == 31:
@@ -1686,6 +1777,9 @@ class Nbfx(ReadWriteKaitaiStruct):
                 pass
                 self.rec_body._write__seq(self._io)
             elif _on == 173:
+                pass
+                self.rec_body._write__seq(self._io)
+            elif _on == 154:
                 pass
                 self.rec_body._write__seq(self._io)
 
@@ -1945,6 +2039,12 @@ class Nbfx(ReadWriteKaitaiStruct):
                     raise kaitaistruct.ConsistencyError(u"rec_body", self.rec_body._root, self._root)
                 if self.rec_body._parent != self:
                     raise kaitaistruct.ConsistencyError(u"rec_body", self.rec_body._parent, self)
+            elif _on == 156:
+                pass
+                if self.rec_body._root != self._root:
+                    raise kaitaistruct.ConsistencyError(u"rec_body", self.rec_body._root, self._root)
+                if self.rec_body._parent != self:
+                    raise kaitaistruct.ConsistencyError(u"rec_body", self.rec_body._parent, self)
             elif _on == 19:
                 pass
                 if self.rec_body._root != self._root:
@@ -2143,6 +2243,12 @@ class Nbfx(ReadWriteKaitaiStruct):
                     raise kaitaistruct.ConsistencyError(u"rec_body", self.rec_body._root, self._root)
                 if self.rec_body._parent != self:
                     raise kaitaistruct.ConsistencyError(u"rec_body", self.rec_body._parent, self)
+            elif _on == 157:
+                pass
+                if self.rec_body._root != self._root:
+                    raise kaitaistruct.ConsistencyError(u"rec_body", self.rec_body._root, self._root)
+                if self.rec_body._parent != self:
+                    raise kaitaistruct.ConsistencyError(u"rec_body", self.rec_body._parent, self)
             elif _on == 16:
                 pass
                 if self.rec_body._root != self._root:
@@ -2180,6 +2286,12 @@ class Nbfx(ReadWriteKaitaiStruct):
                 if self.rec_body._parent != self:
                     raise kaitaistruct.ConsistencyError(u"rec_body", self.rec_body._parent, self)
             elif _on == 139:
+                pass
+                if self.rec_body._root != self._root:
+                    raise kaitaistruct.ConsistencyError(u"rec_body", self.rec_body._root, self._root)
+                if self.rec_body._parent != self:
+                    raise kaitaistruct.ConsistencyError(u"rec_body", self.rec_body._parent, self)
+            elif _on == 155:
                 pass
                 if self.rec_body._root != self._root:
                     raise kaitaistruct.ConsistencyError(u"rec_body", self.rec_body._root, self._root)
@@ -2252,6 +2364,12 @@ class Nbfx(ReadWriteKaitaiStruct):
                 if self.rec_body._parent != self:
                     raise kaitaistruct.ConsistencyError(u"rec_body", self.rec_body._parent, self)
             elif _on == 173:
+                pass
+                if self.rec_body._root != self._root:
+                    raise kaitaistruct.ConsistencyError(u"rec_body", self.rec_body._root, self._root)
+                if self.rec_body._parent != self:
+                    raise kaitaistruct.ConsistencyError(u"rec_body", self.rec_body._parent, self)
+            elif _on == 154:
                 pass
                 if self.rec_body._root != self._root:
                     raise kaitaistruct.ConsistencyError(u"rec_body", self.rec_body._root, self._root)

@@ -92,7 +92,7 @@ class OldMultiByteInt31(object):
 
 
 def nbfx_export_values(nbfx: Nbfx) -> dict:
-    ret = {"Dictionary": [], "NbfxString": [], "Number": []}
+    ret = {"Dictionary": [], "NbfxString": [], "Number": [], "Chars": []}
     for i, entry in enumerate(nbfx.dictionary_table.entries.entry):
         ret["Dictionary"].append((i, entry.str))
     for i, record in enumerate(nbfx.records):
@@ -103,6 +103,12 @@ def nbfx_export_values(nbfx: Nbfx) -> dict:
                 ret["NbfxString"].append((i, "value", rec.value.str))
             elif isinstance(rec, Nbfx.DictionaryAttribute):
                 ret["NbfxString"].append((i, "prefix", rec.prefix.str))
+            elif (
+                isinstance(rec, Nbfx.Chars8Text)
+                or isinstance(rec, Nbfx.Chars16Text)
+                or isinstance(rec, Nbfx.Chars32Text)
+            ):
+                ret["Chars"].append((i, rec.string))
             elif (
                 isinstance(rec, Nbfx.Int8Text)
                 or isinstance(rec, Nbfx.Int16Text)
@@ -127,6 +133,20 @@ def nbfx_import_values(nbfx: Nbfx, values) -> Nbfx:
     mb = OldMultiByteInt31()
     mb.value = dict_len
     correct_size = dict_len + len(mb.to_bytes())
+
+    for val in values["Chars"]:
+        charstr=None
+        l = len(val[1])
+        if l > 65535:
+            charstr=Nbfx.Chars32Text()
+        elif l > 255:
+            charstr=Nbfx.Chars16Text()
+        else:
+            charstr=Nbfx.Chars8Text()
+        charstr.string = val[1]
+        charstr.length = len(val[1])
+        nbfx.records[val[0]].rec_body = charstr
+
     return nbfx
 
 
@@ -138,16 +158,14 @@ def kaitai_serialize(obj: KaitaiStruct) -> bytes:
     # nbfx._check()
     # Still an ugly hack to determine expected output size
     final_size = obj._io.size()
-    print("set", obj._io.size())
     try:
         # This may need increasing for large messages!
         _test_io = KaitaiStream(BytesIO(bytearray(102400)))
         obj._write(_test_io)
-        print(obj._io.size(),obj._io.pos())
-
+        # print(obj._io.size(),obj._io.pos())
     except:
         final_size = _test_io.pos()
-        print("crash override", final_size)
+        # print("crash override", final_size)
 
     _out_io = KaitaiStream(BytesIO(bytearray(final_size)))
     obj._write(_out_io)
@@ -156,8 +174,9 @@ def kaitai_serialize(obj: KaitaiStruct) -> bytes:
 
 def nbfx_set_string(nbfx_str: Nbfx.NbfxString, value: str):
     nbfx_str.str = value
-    #nbfx_set_multibyte_int31(nbfx_str.str_len, len(value))
+    # nbfx_set_multibyte_int31(nbfx_str.str_len, len(value))
     nbfx_str.str_len = nbfx_get_multibyte_int31(len(value))
+
 
 def nbfx_get_multibyte_int31(value: int) -> Nbfx.MultiByteInt31:
     mb = OldMultiByteInt31()
@@ -167,5 +186,3 @@ def nbfx_get_multibyte_int31(value: int) -> Nbfx.MultiByteInt31:
     nbfx_int = Nbfx.MultiByteInt31(mb_io)
     nbfx_int._read()
     return nbfx_int
-
-
