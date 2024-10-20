@@ -133,12 +133,17 @@ def nbfx_import_values(nbfx: Nbfx, values) -> Nbfx:
     for val in values["Chars"]:
         charstr=None
         l = len(val[1])
+        end_element = nbfx.records[val[0]].rec_type & 0x1
         if l > 65535:
+            nbfx.records[val[0]].rec_type = 0x9C + end_element
             charstr=Nbfx.Chars32Text()
         elif l > 255:
+            nbfx.records[val[0]].rec_type = 0x9A + end_element
             charstr=Nbfx.Chars16Text()
         else:
+            nbfx.records[val[0]].rec_type = 0x98 + end_element
             charstr=Nbfx.Chars8Text()
+        print(type(charstr))
         charstr.string = val[1]
         charstr.length = len(val[1])
         nbfx.records[val[0]].rec_body = charstr
