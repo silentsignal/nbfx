@@ -143,11 +143,13 @@ def nbfx_import_values(nbfx: Nbfx, values) -> Nbfx:
         else:
             nbfx.records[val[0]].rec_type = 0x98 + end_element
             charstr=Nbfx.Chars8Text()
-        print(type(charstr))
         charstr.string = val[1]
         charstr.length = len(val[1])
         nbfx.records[val[0]].rec_body = charstr
 
+    for val in values["Number"]:
+        nbfx.records[val[0]].rec_body.value=val[1]
+        
     return nbfx
 
 
