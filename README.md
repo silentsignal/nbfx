@@ -1,5 +1,6 @@
 Python NBFX
 ===========
+![build and test workflow](https://github.com/silentsignal/nbfx/actions/workflows/python-app.yml/badge.svg)
 
 Kaitai Struct parser for the MC-NBFX format used by WCF applications.
 
