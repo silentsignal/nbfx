@@ -6,6 +6,8 @@ Kaitai Struct parser for the MC-NBFX format used by WCF applications.
 
 Official docs: https://learn.microsoft.com/en-us/openspecs/windows_protocols/mc-nbfx/0487de39-1cef-4e45-a1e3-d6292bec3d61
 
+Related blog post with some more details about the design and implementation: https://blog.silentsignal.eu/2024/10/28/wcf-net.tcp-pentest/
+
 Installation
 ------------
 
