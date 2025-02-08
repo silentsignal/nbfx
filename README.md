@@ -38,6 +38,10 @@ As basic data types may be parts of complex datastrucures, maintaining data cons
     nbfx_import_values(nbfx, editable_values)
 ```
 
+### Dictionary Tables
+
+The parser and the associated helper functions are _stateless_: we don't keep track of dictionary entries, only include their index numbers in the (de)serialized objects. This reduces complexity and improves reliability (see dictionary handling bugs of python-wcfbin). If you want to manipulate strings in the dictionary cache you either have to edit its first occurrance, or rebuild the NBFX stream so it'll contain string records instead of dictionary references. If you want to generate a nice textual XML representation of the messages, you'll need to build your dictionary cache around this package (again, python-wcfbin has an example, but it's buggy).
+
 Testing
 -------
 
