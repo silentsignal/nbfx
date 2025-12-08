@@ -1,6 +1,6 @@
 import struct
 from .nbfx import Nbfx
-from kaitaistruct import KaitaiStream, KaitaiStruct, ConsistencyError, EndOfStreamError
+from kaitaistruct import KaitaiStream, KaitaiStruct, ConsistencyError, EndOfStreamError, ConsistencyNotCheckedError
 from io import BytesIO
 
 __all__ = [
@@ -128,7 +128,7 @@ def nbfx_import_values(nbfx: Nbfx, values) -> Nbfx:
         nbfx_set_string(nbfx_str, val[1])
         nbfx.dictionary_table.entries.entry[val[0]] = nbfx_str
     dict_len = len(kaitai_serialize(nbfx.dictionary_table.entries))
-    nbfx.dictionary_table.size = nbfx_get_multibyte_int31(dict_len)
+    nbfx.dictionary_table.size = nbfx_get_multibyte_int31(dict_len, nbfx.dictionary_table)
 
     for val in values["Chars"]:
         charstr=None
@@ -145,11 +145,17 @@ def nbfx_import_values(nbfx: Nbfx, values) -> Nbfx:
             charstr=Nbfx.Chars8Text()
         charstr.string = val[1]
         charstr.length = len(val[1])
+        charstr._parent=nbfx.records[val[0]]
+        charstr._root=nbfx.records[val[0]]._root
+        charstr._check()
         nbfx.records[val[0]].rec_body = charstr
+        nbfx.records[val[0]]._check()
 
     for val in values["Number"]:
         nbfx.records[val[0]].rec_body.value=val[1]
-        
+    nbfx.dictionary_table.entries._check()
+    nbfx.dictionary_table._check()
+    nbfx._check()
     return nbfx
 
 
@@ -157,19 +163,21 @@ def nbfx_serialize(nbfx: Nbfx) -> bytes:
     return kaitai_serialize(nbfx)
 
 
-def kaitai_serialize(obj: KaitaiStruct) -> bytes:
+def kaitai_serialize(obj: KaitaiStream) -> bytes:
     # nbfx._check()
     # Still an ugly hack to determine expected output size
     final_size = obj._io.size()
     try:
         # This may need increasing for large messages!
-        _test_io = KaitaiStream(BytesIO(bytearray(102400)))
+        obj._check()
+        _test_io = KaitaiStream(BytesIO(bytearray(1024000)))
         obj._write(_test_io)
         # print(obj._io.size(),obj._io.pos())
-    except:
+    except ConsistencyError as e: # TODO remove Pokemon handler!
         final_size = _test_io.pos()
         # print("crash override", final_size)
-
+    if final_size==0:
+        pass
     _out_io = KaitaiStream(BytesIO(bytearray(final_size)))
     obj._write(_out_io)
     return _out_io.to_byte_array()
@@ -178,14 +186,21 @@ def kaitai_serialize(obj: KaitaiStruct) -> bytes:
 def nbfx_set_string(nbfx_str: Nbfx.NbfxString, value: str):
     nbfx_str.str = value
     # nbfx_set_multibyte_int31(nbfx_str.str_len, len(value))
-    nbfx_str.str_len = nbfx_get_multibyte_int31(len(value))
+    nbfx_str.str_len = nbfx_get_multibyte_int31(len(value), nbfx_str)
+    nbfx_str._check()
 
 
-def nbfx_get_multibyte_int31(value: int) -> Nbfx.MultiByteInt31:
+def nbfx_get_multibyte_int31(value: int, parent: Nbfx) -> Nbfx.MultiByteInt31:
     mb = OldMultiByteInt31()
     mb.value = value
     #print(repr(mb.to_bytes()))
     mb_io = KaitaiStream(BytesIO(mb.to_bytes()))
     nbfx_int = Nbfx.MultiByteInt31(mb_io)
     nbfx_int._read()
+    nbfx_int._parent=parent
+    nbfx_int._root=parent._root
+    for mb in nbfx_int.multibytes:
+        mb._root=nbfx_int._root
+        mb._check()
+    nbfx_int._check()
     return nbfx_int

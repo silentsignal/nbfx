@@ -8,8 +8,8 @@ version = "0.0.1"
 authors = [ {name="buherator", email="buherator@silentsignal.hu"}, ]
 description = "Kaitai Struct parser of MS-NFX"
 readme = "README.md"
-requires-python = ">=3.0"
-dependencies = ["kaitaistruct@git+https://github.com/kaitai-io/kaitai_struct_python_runtime.git"] # until 0.11 is officially released
+requires-python = ">=3.8"
+dependencies = ["kaitaistruct>=0.11"]
 
 # For Git-based dependency fetching
 [tool.hatch.metadata]
@@ -18,4 +18,9 @@ allow-direct-references = true
 [tool.pytest.ini_options]
 pythonpath = [
   "src"
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
 ]

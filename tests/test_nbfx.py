@@ -60,7 +60,7 @@ def test_reserialize_chars(nbfx_from_file, size, expected):
 
 @pytest.mark.parametrize("value,expected", [(145,b"\x91\x01"), (5521, b"\x91+")])
 def test_multibyte(value,expected):
-    mb=nbfx_get_multibyte_int31(value)
+    mb=nbfx_get_multibyte_int31(value, Nbfx())
     #print(mb.value)
     ser=nbfx_serialize(mb)
     assert(expected == ser)
